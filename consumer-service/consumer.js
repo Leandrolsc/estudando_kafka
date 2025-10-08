@@ -3,7 +3,7 @@ const { Kafka } = require('kafkajs');
 // Configuração para conectar ao cluster Kafka
 const kafka = new Kafka({
   clientId: 'snake-game-consumer',
-  brokers: ['broker-1:19092'],
+  brokers: ['broker-1:19092', 'broker-2:29092', 'broker-3:39092'],
 });
 
 const consumer = kafka.consumer({ groupId: 'snake-game-consumers' });

@@ -11,7 +11,7 @@ app.use(express.json());
 // Conectamos aos brokers usando os nomes dos serviços definidos no docker-compose
 const kafka = new Kafka({
   clientId: 'react-snake-producer',
-  brokers: ['broker-1:19092'],
+  brokers: ['broker-1:19092', 'broker-2:29092', 'broker-3:39092'],
 });
 
 const producer = kafka.producer();
