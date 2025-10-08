@@ -1,0 +1,86 @@
+x-kafka-image: &kafka-image
+  image: apache/kafka:latest
+
+# Define as variáveis de ambiente comuns para todos os controllers
+x-controller-env: &controller-env
+  KAFKA_PROCESS_ROLES: controller
+  KAFKA_LISTENERS: CONTROLLER://:9093
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  # Lista de todos os controllers que formam o quorum (o cérebro do cluster).
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093
+
+# Define as variáveis de ambiente comuns para todos os brokers
+x-broker-env: &broker-env
+  KAFKA_PROCESS_ROLES: broker
+  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+  # Todos os brokers precisam saber onde encontrar o quorum de controllers.
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093
+
+# --- SERVIÇOS DO CLUSTER ---
+services:
+  # --- CONTROLLERS ---
+  controller-1:
+    <<: *kafka-image # Reutiliza a definição da imagem
+    container_name: controller-1
+    environment:
+      <<: *controller-env # Reutiliza as variáveis de ambiente do controller
+      KAFKA_NODE_ID: 1   # ID único para este controller
+
+  # --- BROKERS ---
+  broker-1:
+    <<: *kafka-image
+    container_name: broker-1
+    ports:
+      - "29092:9092"
+    depends_on:
+      - controller-1
+    environment:
+      <<: *broker-env # Reutiliza as variáveis de ambiente do broker
+      KAFKA_NODE_ID: 4 # ID único para este broker
+      # Listeners (interno para o cluster, externo para sua máquina)
+      KAFKA_LISTENERS: 'PLAINTEXT://:19092,EXTERNAL://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-1:19092,EXTERNAL://localhost:29092'
+
+
+  # Define o serviço para nossa aplicação React
+
+  producer-service:
+    container_name: producer-service
+    # Constrói a imagem a partir do Dockerfile na pasta 'producer-service'
+    build:
+      context: ./producer-service
+    ports:
+      # Expõe a porta do serviço para o host, para que o React possa acessá-la
+      - "3001:3001"
+    depends_on:
+      # Garante que o serviço só inicie depois que os brokers estiverem prontos
+      - broker-1
+    command: ["/bin/sh", "-c", "sleep 5 && npm start"]
+    restart: unless-stopped
+    
+  consumer-service:
+    container_name: consumer-service
+    # Constrói a imagem a partir do Dockerfile na pasta 'producer-service'
+    build:
+      context: ./consumer-service
+    depends_on:
+      # Garante que o serviço só inicie depois que os brokers estiverem prontos
+      - broker-1
+    command: ["/bin/sh", "-c", "sleep 5 && npm start"]
+    restart: unless-stopped
+
+  react-snake:
+    # Instruções para construir a imagem Docker
+    build:
+      # O contexto é o diretório atual (onde o Dockerfile está)
+      context: ./app_snake
+      dockerfile: Dockerfile
+    # Nome do contêiner para fácil identificação
+    container_name: react_snake_game
+    # Mapeia a porta 8080 da sua máquina para a porta 80 do contêiner (onde o Nginx está servindo)
+    ports:
+      - "8080:80"
+    # Reinicia o contêiner automaticamente em caso de falha
+    restart: unless-stopped

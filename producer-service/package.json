@@ -1,0 +1,14 @@
+{
+  "name": "producer-service",
+  "version": "1.0.0",
+  "description": "Serviço para produzir eventos do jogo Snake para o Kafka",
+  "main": "producer.js",
+  "scripts": {
+    "start": "node producer.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "kafkajs": "^2.2.4"
+  }
+}

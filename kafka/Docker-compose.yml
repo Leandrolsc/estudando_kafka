@@ -1,0 +1,107 @@
+x-kafka-image: &kafka-image
+  image: apache/kafka:latest
+
+# Define as variáveis de ambiente comuns para todos os controllers
+x-controller-env: &controller-env
+  KAFKA_PROCESS_ROLES: controller
+  KAFKA_LISTENERS: CONTROLLER://:9093
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  # Lista de todos os controllers que formam o quorum (o cérebro do cluster).
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+
+# Define as variáveis de ambiente comuns para todos os brokers
+x-broker-env: &broker-env
+  KAFKA_PROCESS_ROLES: broker
+  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+  # Todos os brokers precisam saber onde encontrar o quorum de controllers.
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+
+# --- SERVIÇOS DO CLUSTER ---
+services:
+  # --- CONTROLLERS ---
+  # Grupo de 3 controllers para gerenciar o estado do cluster de forma resiliente.
+  controller-1:
+    <<: *kafka-image # Reutiliza a definição da imagem
+    container_name: controller-1
+    environment:
+      <<: *controller-env # Reutiliza as variáveis de ambiente do controller
+      KAFKA_NODE_ID: 1   # ID único para este controller
+
+  controller-2:
+    <<: *kafka-image
+    container_name: controller-2
+    environment:
+      <<: *controller-env
+      KAFKA_NODE_ID: 2
+
+  controller-3:
+    <<: *kafka-image
+    container_name: controller-3
+    environment:
+      <<: *controller-env
+      KAFKA_NODE_ID: 3
+
+  # --- BROKERS ---
+  # Grupo de 3 brokers para armazenar e servir os dados.
+  broker-1:
+    <<: *kafka-image
+    container_name: broker-1
+    ports:
+      - "29092:9092"
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    environment:
+      <<: *broker-env # Reutiliza as variáveis de ambiente do broker
+      KAFKA_NODE_ID: 4 # ID único para este broker
+      # Listeners (interno para o cluster, externo para sua máquina)
+      KAFKA_LISTENERS: 'PLAINTEXT://:19092,EXTERNAL://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-1:19092,EXTERNAL://localhost:29092'
+
+  broker-2:
+    <<: *kafka-image
+    container_name: broker-2
+    ports:
+      - "39092:9092"
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 5
+      KAFKA_LISTENERS: 'PLAINTEXT://:19092,EXTERNAL://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-2:19092,EXTERNAL://localhost:39092'
+
+  broker-3:
+    <<: *kafka-image
+    container_name: broker-3
+    ports:
+      - "49092:9092"
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 6
+      KAFKA_LISTENERS: 'PLAINTEXT://:19092,EXTERNAL://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-3:19092,EXTERNAL://localhost:49092'
+
+  # Define o serviço para nossa aplicação React
+  react-snake:
+    # Instruções para construir a imagem Docker
+    build:
+      # O contexto é o diretório atual (onde o Dockerfile está)
+      context: ./app_snake
+      dockerfile: Dockerfile
+    # Nome do contêiner para fácil identificação
+    container_name: react_snake_game
+    # Mapeia a porta 8080 da sua máquina para a porta 80 do contêiner (onde o Nginx está servindo)
+    ports:
+      - "8080:80"
+    # Reinicia o contêiner automaticamente em caso de falha
+    restart: unless-stopped

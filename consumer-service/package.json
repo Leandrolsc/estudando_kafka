@@ -1,0 +1,12 @@
+{
+  "name": "consumer-service",
+  "version": "1.0.0",
+  "description": "Serviço para consumir eventos do jogo Snake do Kafka",
+  "main": "consumer.js",
+  "scripts": {
+    "start": "node consumer.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  }
+}
