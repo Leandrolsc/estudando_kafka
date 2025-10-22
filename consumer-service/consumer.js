@@ -28,8 +28,8 @@ const run = async () => {
         console.log(`| Partição: ${partition}`);
         console.log('| Dados do Evento:');
         console.log(`|   - Jogo: ${eventData.game}`);
-        console.log(`|   - Evento: ${eventData.eventType}`);
-        console.log(`|   - Pontuação Final: ${eventData.finalScore}`);
+        console.log(`|   - Tipo de Evento: ${eventData.eventType}`);
+        console.log(`|   - Evento: ${eventData.event}`);
         console.log(`|   - Timestamp: ${eventData.timestamp}`);
         console.log('=========================================\n');
       },

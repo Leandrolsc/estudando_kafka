@@ -20,13 +20,9 @@ const topic = 'game-events';
 // Endpoint que o React irá chamar
 app.post('/game_event', async (req, res) => {
   try {
-    const { score, eventType } = req.body;
-    
-    if (eventType !== 'gameOver') {
-      return res.status(400).json({ message: 'Apenas eventos de gameOver são aceitos.' });
-    }
+    const { eventType, event } = req.body;
 
-    console.log(`Recebido evento de fim de jogo com pontuação: ${score}. Enviando para o Kafka...`);
+    console.log(`Recebido evento do tipo ${eventType} com o valor ${event} . Enviando para o Kafka...`);
 
     // Conecta o produtor, envia a mensagem e desconecta
     await producer.connect();
@@ -37,8 +33,8 @@ app.post('/game_event', async (req, res) => {
           key: `player-${Date.now()}`,
           value: JSON.stringify({ 
             game: 'snake',
-            eventType: 'gameOver',
-            finalScore: score,
+            eventType: eventType,
+            event: event,
             timestamp: new Date().toISOString(),
           })
         },

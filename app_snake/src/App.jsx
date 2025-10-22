@@ -7,10 +7,10 @@ const INITIAL_FOOD_POSITION = { x: 15, y: 15 };
 const INITIAL_DIRECTION = { x: 0, y: -1 }; // Começa movendo para cima
 const GAME_SPEED = 150; // ms
 
-const sendMoves = async (moves) => {
+const sendEvent = async (event, type) => {
   // O backend estará acessível em http://localhost:3001
   const producerUrl = 'http://localhost:3001/game_event';
-  console.log(`Enviando movimento "${moves} "para ${producerUrl}`);
+  console.log(`Enviando tipo de evento ${type} o valor "${event}" para ${producerUrl}`);
 
   try {
     const response = await fetch(producerUrl, {
@@ -19,8 +19,8 @@ const sendMoves = async (moves) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        score: moves,
-        eventType: 'gameOver',
+        eventType: type,
+        event: event,
       }),
     });
 
@@ -74,6 +74,7 @@ const SnakeGame = () => {
     setSpeed(GAME_SPEED);
     setGameOver(false);
     setScore(0);
+    sendEvent('Game Started', 'GameStart');
   };
 
   // Função para verificar colisões
@@ -111,8 +112,9 @@ const SnakeGame = () => {
 
       // Verifica se comeu a comida
       if (head.x === food.x && head.y === food.y) {
-        setScore(s => s + 10);
+        setScore(s => s + 1);
         setFood(generateFood());
+        sendEvent(score + 1, 'ScoreUpdate');
       } else {
         newSnake.pop();
       }
@@ -121,13 +123,15 @@ const SnakeGame = () => {
     });
   }, [food.x, food.y, gameOver, snake]);
 
-
   // Efeito para controlar o loop do jogo com setInterval
   useEffect(() => {
-    if (gameOver) return;
+    if (gameOver) {
+      sendEvent(score, 'GameOver');
+      return; 
+    }
     const gameInterval = setInterval(gameLoop, speed);
     return () => clearInterval(gameInterval);
-  }, [gameOver, speed, gameLoop]);
+  }, [gameOver, speed, gameLoop, score]);
 
 
   // Efeito para controlar as entradas do teclado
@@ -135,7 +139,7 @@ const SnakeGame = () => {
     const handleKeyDown = (e) => {
       e.preventDefault();
       const { x, y } = directionRef.current;
-      sendMoves(e.key);
+      sendEvent(e.key,'Move');
       switch (e.key) {
         case 'ArrowUp':
           if (y === 0) setDirection({ x: 0, y: -1 });
