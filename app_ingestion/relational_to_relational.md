@@ -153,37 +153,37 @@ Exemplo de configuração:
 ---
 
 ## 6. Vantagens
-Categoria   | Descrição
---------------------------
-Escalabilidade |	Kafka permite processar grandes volumes de dados sem degradação de desempenho.
---------------------------
-Baixa latência |	Alterações no banco de origem são propagadas quase em tempo real.
---------------------------
-Resiliência |	Mensagens são replicadas entre brokers, evitando perda de dados.
---------------------------
-Desacoplamento | O banco de origem e o destino ficam independentes, permitindo substituições sem impacto direto.
---------------------------
-Modo KRaft Simplificado	| Elimina a necessidade do Zookeeper, reduzindo a complexidade e o custo operacional.
---------------------------
-Tolerância a falhas	| O protocolo Raft garante consenso e rápida recuperação em caso de falha de controladores.
---------------------------
-Flexibilidade	| Fácil integração com múltiplos destinos (PostgreSQL, Snowflake, Redshift, etc.).
+| Categoria   | Descrição |
+|------------|------------|
+| Escalabilidade |	Kafka permite processar grandes volumes de dados sem degradação de desempenho. |
+|------------|------------|
+| Baixa latência |	Alterações no banco de origem são propagadas quase em tempo real. |
+|------------|------------|
+| Resiliência |	Mensagens são replicadas entre brokers, evitando perda de dados. |
+|------------|------------|
+| Desacoplamento | O banco de origem e o destino ficam independentes, permitindo substituições sem impacto direto. |
+|------------|------------|
+| Modo KRaft Simplificado	| Elimina a necessidade do Zookeeper, reduzindo a complexidade e o custo operacional. |
+|------------|------------|
+| Tolerância a falhas	| O protocolo Raft garante consenso e rápida recuperação em caso de falha de controladores. |
+|------------|------------|
+| Flexibilidade	| Fácil integração com múltiplos destinos (PostgreSQL, Snowflake, Redshift, etc.). |
 
 
 ## 7. Desvantagens
-Categoria   |   Descrição
---------------------------
-Complexidade inicial    |   Exige conhecimento de Kafka, Connectors e configuração de tópicos.
---------------------------
-Gerenciamento de esquema    |	Mudanças nas tabelas (DDL) precisam ser refletidas no destino.
---------------------------
-Custo de infraestrutura |	Clusters Kafka exigem recursos computacionais adequados.
---------------------------
-Monitoramento e tuning  |	Necessário configurar métricas e alertas para evitar atrasos ou gargalos.
---------------------------
-Dependência de conectores   |	A qualidade e desempenho dependem dos conectores utilizados (Debezium, JDBC, etc.).
+| Categoria   |   Descrição |
+|------------|------------|
+| Complexidade inicial    |   Exige conhecimento de Kafka, Connectors e configuração de tópicos. |
+|------------|------------|
+| Gerenciamento de esquema    |	Mudanças nas tabelas (DDL) precisam ser refletidas no destino. |
+|------------|------------|
+| Custo de infraestrutura |	Clusters Kafka exigem recursos computacionais adequados. |
+|------------|------------|
+| Monitoramento e tuning  |	Necessário configurar métricas e alertas para evitar atrasos ou gargalos. |
+|------------|------------|
+| Dependência de conectores   |	A qualidade e desempenho dependem dos conectores utilizados (Debezium, JDBC, etc.). |
 
 ## 8. Conclusão
 
-O uso do Apache Kafka em modo KRaft como camada intermediária entre bancos relacionais oferece uma solução eficiente, resiliente e moderna para transporte e sincronização de dados em tempo real.
-Apesar da curva de aprendizado inicial, o ganho em desacoplamento, desempenho e confiabilidade justifica amplamente sua adoção em ambientes corporativos.
+O uso do **Apache Kafka em modo KRaft** como camada intermediária entre bancos relacionais oferece uma solução **eficiente, resiliente e moderna** para transporte e sincronização de dados em tempo real.
+Apesar da curva de aprendizado inicial, o ganho em **desacoplamento, desempenho e confiabilidade** justifica amplamente sua adoção em ambientes corporativos.
