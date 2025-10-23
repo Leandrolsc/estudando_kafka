@@ -16,13 +16,14 @@ Transportar dados de um **banco relacional de origem (ex: SQL Server)** para um 
 
 ### 2.2. Arquitetura Geral
 
-+------------------+ +----------------------+ +-------------------+
-| Banco Origem | | Apache Kafka (KRaft) | | Banco Destino |
-| (SQL Server) | ---> | - Connect Source | ---> | (PostgreSQL) |
-| | | - Topic | | |
-+------------------+ | - Connect Sink | +-------------------+
-+----------------------+
-
+```bash
++------------------+       +----------------------+       +-------------------+
+|  Banco Origem    |       |  Apache Kafka (KRaft)|       |  Banco Destino    |
+|  (SQL Server)    | --->  |  - Connect Source    | --->  |  (PostgreSQL)     |
+|                  |       |  - Topic             |       |                   |
++------------------+       |  - Connect Sink      |       +-------------------+
+                           +----------------------+
+```
 
 ---
 
