@@ -51,6 +51,7 @@ Um conector popular para este propósito é o **Debezium**, que realiza a captur
   - Função: Captura inserções, atualizações e exclusões em tabelas do SQL Server e as publica em **tópicos Kafka**.
 
 Exemplo de configuração simplificada (arquivo JSON):
+
 ```json
 {
   "name": "sqlserver-source-connector",
@@ -75,7 +76,7 @@ Exemplo de configuração simplificada (arquivo JSON):
 
 Os dados extraídos são publicados em tópicos no cluster Kafka.
 
-* Cada tabela do banco de origem gera um tópico distinto (ex: sqlserver_dbo.Clientes, sqlserver_dbo.Vendas);
+* Cada tabela do banco de origem gera um tópico distinto (ex: ``sqlserver_dbo.Clientes``, ``sqlserver_dbo.Vendas``);
 * As mensagens contêm os eventos de alteração (inserção, atualização, exclusão);
 * O Kafka armazena essas mensagens de forma ordenada e replicada.
 
@@ -94,9 +95,9 @@ Message:
 
 ### 4.3. Etapa 3 – Consumo e Escrita no Banco de Destino
 
-Utiliza-se o Kafka Connect Sink Connector para consumir os tópicos e inserir os dados no banco de destino.
+Utiliza-se o **Kafka Connect Sink Connector** para consumir os tópicos e inserir os dados no banco de destino.
 
-* Conector Destino (Sink Connector):
+* **Conector Destino (Sink Connector):**
 
     * Tipo: JDBC Sink Connector
 
@@ -156,17 +157,11 @@ Exemplo de configuração:
 | Categoria   | Descrição |
 |------------|------------|
 | Escalabilidade |	Kafka permite processar grandes volumes de dados sem degradação de desempenho. |
-|------------|------------|
 | Baixa latência |	Alterações no banco de origem são propagadas quase em tempo real. |
-|------------|------------|
 | Resiliência |	Mensagens são replicadas entre brokers, evitando perda de dados. |
-|------------|------------|
 | Desacoplamento | O banco de origem e o destino ficam independentes, permitindo substituições sem impacto direto. |
-|------------|------------|
 | Modo KRaft Simplificado	| Elimina a necessidade do Zookeeper, reduzindo a complexidade e o custo operacional. |
-|------------|------------|
 | Tolerância a falhas	| O protocolo Raft garante consenso e rápida recuperação em caso de falha de controladores. |
-|------------|------------|
 | Flexibilidade	| Fácil integração com múltiplos destinos (PostgreSQL, Snowflake, Redshift, etc.). |
 
 
@@ -174,13 +169,9 @@ Exemplo de configuração:
 | Categoria   |   Descrição |
 |------------|------------|
 | Complexidade inicial    |   Exige conhecimento de Kafka, Connectors e configuração de tópicos. |
-|------------|------------|
 | Gerenciamento de esquema    |	Mudanças nas tabelas (DDL) precisam ser refletidas no destino. |
-|------------|------------|
 | Custo de infraestrutura |	Clusters Kafka exigem recursos computacionais adequados. |
-|------------|------------|
 | Monitoramento e tuning  |	Necessário configurar métricas e alertas para evitar atrasos ou gargalos. |
-|------------|------------|
 | Dependência de conectores   |	A qualidade e desempenho dependem dos conectores utilizados (Debezium, JDBC, etc.). |
 
 ## 8. Conclusão
