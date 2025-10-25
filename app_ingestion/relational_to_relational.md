@@ -1,5 +1,20 @@
 # Integração de Dados entre Bancos Relacionais com Apache Kafka (Modo KRaft)
 
+
+---
+
+## Sumário
+1. [Introdução](#1-Introdução)  
+2. [Cenário Proposto](#2-Cenário-Proposto)  
+3. [Componentes Envolvidos](#3-Componentes-Envolvidos)  
+4. [Fluxo de Dados](#4-Fluxo-de-Dados)  
+5. [Arquitetura Lógica com KRaft](#5-Arquitetura-Lógica-com-KRaft)  
+6. [Vantagens](#6-Vantagens)  
+7. [Desvantagens](#7-Desvantagens)  
+8. [Conclusão](#8-Conclusão)  
+
+---
+
 ## 1. Introdução
 
 A integração entre bancos de dados relacionais é uma das aplicações mais comuns do **Apache Kafka**.  
