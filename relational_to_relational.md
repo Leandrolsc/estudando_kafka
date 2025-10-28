@@ -154,7 +154,7 @@ Exemplo de configuração:
                           │  • Brokers               │
                           │  • Topics / Partições    │
                           └───────────┬──────────────┘
-                                      │
+                                      │             
              ┌──────────────────────┐ │ ┌─────────────────────────┐
              │  Source Connector     │ │ │     Sink Connector      │
              │ (Debezium SQLServer)  │ │ │ (JDBC PostgreSQL Sink)  │

@@ -1,7 +1,7 @@
 services:
 
   postgres-db:
-    build: ./database
+    build: ./database/postgres
     container_name: events_db
     environment:
       POSTGRES_USER: admin
@@ -9,6 +9,25 @@ services:
       POSTGRES_DB: events_db
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d events_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  postgres-db-2:
+    build: ./database/postgres_2
+    container_name: events_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password
+      POSTGRES_DB: events_db
+    ports:
+      - "5433:5433"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres_sql/init.sql:/docker-entrypoint-initdb.d/init.sql
