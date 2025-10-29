@@ -2,7 +2,7 @@ services:
 
   postgres-db:
     build: ./database/postgres
-    container_name: events_db
+    container_name: postgres_db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin_password
@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres_sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d events_db"]
@@ -19,21 +19,22 @@ services:
       timeout: 5s
       retries: 5
   
-  postgres-db-2:
-    build: ./database/postgres_2
-    container_name: events_db
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin_password
-      POSTGRES_DB: events_db
+  mysql-db:
+    build: ./database/mysql
+    container_name: mysql_db
     ports:
-      - "5433:5433"
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'admin_root_password' 
+      MYSQL_DATABASE: 'events_db'          
+      MYSQL_USER: 'admin'                  
+      MYSQL_PASSWORD: 'admin_password'     
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres_sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+      - ./database/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d events_db"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -152,13 +153,48 @@ services:
   consumer-service:
     container_name: consumer-service
     # Constrói a imagem a partir do Dockerfile na pasta 'producer-service'
-    build:
-      context: ./consumer-service
+    build: ./consumer-service
     depends_on:
       # Garante que o serviço só inicie depois que os brokers estiverem prontos
       - broker-1
     command: ["/bin/sh", "-c", "sleep 5 && npm start"]
     restart: unless-stopped
+
+  consumer-postgres:
+    build: ./consumer-service
+    container_name: consumer_postgres
+    command: node consumers/consumer-postgres.js
+    environment:
+      DB_USER: 'admin'
+      DB_HOST: 'postgres-db' 
+      DB_DATABASE: 'events_db'
+      DB_PASSWORD: 'admin_password'
+      DB_PORT: 5432
+    depends_on:
+      postgres-db:
+        condition: service_healthy 
+      broker-1:
+        condition: service_started
+      broker-2:
+        condition: service_started
+      broker-3:
+        condition: service_started
+    restart: on-failure
+
+  consumer-archive:
+    build: ./consumer-service 
+    container_name: consumer_archive
+    command: node consumers/consumer-archive.js
+    volumes:
+      - ./archives:/usr/src/app/archives
+    depends_on:
+      broker-1:
+        condition: service_started
+      broker-2:
+        condition: service_started
+      broker-3:
+        condition: service_started
+    restart: on-failure
 
   react-snake:
     # Instruções para construir a imagem Docker
