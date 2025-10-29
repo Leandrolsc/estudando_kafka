@@ -41,7 +41,7 @@ services:
 
 
   controller-1:
-    image: apache/kafka:latest
+    build: ./kafka
     container_name: controller-1
     environment:
       KAFKA_NODE_ID: 1
@@ -53,7 +53,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
   controller-2:
-    image: apache/kafka:latest
+    build: ./kafka
     container_name: controller-2
     environment:
       KAFKA_NODE_ID: 2
@@ -65,7 +65,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
   controller-3:
-    image: apache/kafka:latest
+    build: ./kafka
     container_name: controller-3
     environment:
       KAFKA_NODE_ID: 3
@@ -77,7 +77,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
   broker-1:
-    image: apache/kafka:latest
+    build: ./kafka
     container_name: broker-1
     ports:
       - 29092:9092
@@ -97,7 +97,7 @@ services:
       - controller-3
 
   broker-2:
-    image: apache/kafka:latest
+    build: ./kafka
     container_name: broker-2
     ports:
       - 39092:9092
@@ -117,7 +117,7 @@ services:
       - controller-3
 
   broker-3:
-    image: apache/kafka:latest
+    build:: ./kafka
     container_name: broker-3
     ports:
       - 49092:9092
@@ -138,24 +138,18 @@ services:
 
   producer-service:
     container_name: producer-service
-    # Constrói a imagem a partir do Dockerfile na pasta 'producer-service'
-    build:
-      context: ./producer-service
+    build: ./producer-service
     ports:
-      # Expõe a porta do serviço para o host, para que o React possa acessá-la
       - "3001:3001"
     depends_on:
-      # Garante que o serviço só inicie depois que os brokers estiverem prontos
       - broker-1
     command: ["/bin/sh", "-c", "sleep 5 && npm start"]
     restart: unless-stopped
     
   consumer-service:
     container_name: consumer-service
-    # Constrói a imagem a partir do Dockerfile na pasta 'producer-service'
     build: ./consumer-service
     depends_on:
-      # Garante que o serviço só inicie depois que os brokers estiverem prontos
       - broker-1
     command: ["/bin/sh", "-c", "sleep 5 && npm start"]
     restart: unless-stopped
@@ -197,15 +191,23 @@ services:
     restart: on-failure
 
   react-snake:
-    # Instruções para construir a imagem Docker
-    build:
-      # O contexto é o diretório atual (onde o Dockerfile está)
-      context: ./app_snake
-      dockerfile: Dockerfile
-    # Nome do contêiner para fácil identificação
+    build: ./app_snake
     container_name: react_snake_game
-    # Mapeia a porta 8080 da sua máquina para a porta 80 do contêiner (onde o Nginx está servindo)
     ports:
       - "8080:80"
-    # Reinicia o contêiner automaticamente em caso de falha
     restart: unless-stopped
+
+  connect:
+    build: ./kafka_connect
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres-db
+      - mysql-db
+    environment:
+      BOOTSTRAP_SERVERS: 'kafka:9092'
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: 'connect_configs'
+      OFFSET_STORAGE_TOPIC: 'connect_offsets'
+      STATUS_STORAGE_TOPIC: 'connect_statuses'
