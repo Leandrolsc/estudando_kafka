@@ -198,8 +198,8 @@ const SnakeGame = () => {
             display: 'grid',
             gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)`,
             gridTemplateRows: `repeat(${BOARD_SIZE}, 1fr)`,
-            width: 'calc(20px * 20)',
-            height: 'calc(20px * 20)'
+            width: '500px',
+            height: '500px'
           }}
           className="bg-gray-800"
         >
