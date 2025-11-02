@@ -3,6 +3,8 @@ services:
   postgres-db:
     build: ./database/postgres
     container_name: postgres_db
+    networks:
+      - kafka-net
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin_password
@@ -22,6 +24,8 @@ services:
   mysql-db:
     build: ./database/mysql
     container_name: mysql_db
+    networks:
+      - kafka-net
     ports:
       - "3306:3306"
     environment:
@@ -29,9 +33,7 @@ services:
       MYSQL_DATABASE: 'events_db'          
       MYSQL_USER: 'admin'                  
       MYSQL_PASSWORD: 'admin_password'     
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    
     restart: always
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
@@ -42,6 +44,8 @@ services:
 
   controller-1:
     build: ./kafka
+    networks:
+      - kafka-net
     container_name: controller-1
     environment:
       KAFKA_NODE_ID: 1
@@ -51,9 +55,16 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9093"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   controller-2:
     build: ./kafka
+    networks:
+      - kafka-net
     container_name: controller-2
     environment:
       KAFKA_NODE_ID: 2
@@ -63,9 +74,16 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9093"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   controller-3:
     build: ./kafka
+    networks:
+      - kafka-net
     container_name: controller-3
     environment:
       KAFKA_NODE_ID: 3
@@ -75,9 +93,16 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9093"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   broker-1:
     build: ./kafka
+    networks:
+      - kafka-net
     container_name: broker-1
     ports:
       - 29092:9092
@@ -92,12 +117,22 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     depends_on:
-      - controller-1
-      - controller-2
-      - controller-3
+      controller-1:
+        condition: service_healthy
+      controller-2:
+        condition: service_healthy
+      controller-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "19092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   broker-2:
     build: ./kafka
+    networks:
+      - kafka-net
     container_name: broker-2
     ports:
       - 39092:9092
@@ -112,12 +147,22 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     depends_on:
-      - controller-1
-      - controller-2
-      - controller-3
+      controller-1:
+        condition: service_healthy
+      controller-2:
+        condition: service_healthy
+      controller-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "19092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   broker-3:
-    build:: ./kafka
+    build: ./kafka
+    networks:
+      - kafka-net
     container_name: broker-3
     ports:
       - 49092:9092
@@ -132,23 +177,37 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     depends_on:
-      - controller-1
-      - controller-2
-      - controller-3
+      controller-1:
+        condition: service_healthy
+      controller-2:
+        condition: service_healthy
+      controller-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "19092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   producer-service:
     container_name: producer-service
     build: ./producer-service
+    networks:
+      - kafka-net
     ports:
       - "3001:3001"
+    environment:
+      BOOTSTRAP_SERVERS: 'broker-1:19092,broker-2:19092,broker-3:19092'
     depends_on:
       - broker-1
-    command: ["/bin/sh", "-c", "sleep 5 && npm start"]
+    command: ["npm", "start"]
     restart: unless-stopped
     
   consumer-service:
     container_name: consumer-service
     build: ./consumer-service
+    networks:
+      - kafka-net
     depends_on:
       - broker-1
     command: ["/bin/sh", "-c", "sleep 5 && npm start"]
@@ -157,7 +216,9 @@ services:
   consumer-postgres:
     build: ./consumer-service
     container_name: consumer_postgres
-    command: node consumers/consumer-postgres.js
+    command: node consumer-postgres.js
+    networks:
+      - kafka-net
     environment:
       DB_USER: 'admin'
       DB_HOST: 'postgres-db' 
@@ -178,7 +239,9 @@ services:
   consumer-archive:
     build: ./consumer-service 
     container_name: consumer_archive
-    command: node consumers/consumer-archive.js
+    networks:
+      - kafka-net
+    command: node consumer-archive.js
     volumes:
       - ./archives:/usr/src/app/archives
     depends_on:
@@ -193,6 +256,8 @@ services:
   react-snake:
     build: ./app_snake
     container_name: react_snake_game
+    networks:
+      - kafka-net
     ports:
       - "8080:80"
     restart: unless-stopped
@@ -200,14 +265,33 @@ services:
   connect:
     build: ./kafka_connect
     container_name: kafka-connect
+    networks:
+      - kafka-net
     ports:
       - "8083:8083"
     depends_on:
-      - postgres-db
-      - mysql-db
+      postgres-db:
+        condition: service_healthy
+      mysql-db:
+        condition: service_healthy
+      broker-1:
+        condition: service_healthy
+      broker-2:
+        condition: service_healthy
+      broker-3:
+        condition: service_healthy
     environment:
-      BOOTSTRAP_SERVERS: 'kafka:9092'
+      BOOTSTRAP_SERVERS: 'broker-1:19092,broker-2:19092,broker-3:19092'
       GROUP_ID: 1
       CONFIG_STORAGE_TOPIC: 'connect_configs'
       OFFSET_STORAGE_TOPIC: 'connect_offsets'
       STATUS_STORAGE_TOPIC: 'connect_statuses'
+
+
+volumes:
+  postgres_data:
+  mysql_data:
+
+networks:
+  kafka-net:
+    driver: bridge
