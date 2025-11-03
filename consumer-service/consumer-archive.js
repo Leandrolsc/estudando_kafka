@@ -5,7 +5,7 @@ const path = require('path');
 // 1. Configuração do Kafka (com outro NOVO groupId)
 const kafka = new Kafka({
   clientId: 'json-archiver',
-  brokers: ['broker-1:19092', 'broker-2:29092', 'broker-3:39092'],
+  brokers: ['broker-1:19092', 'broker-2:19092', 'broker-3:19092'],
 });
 
 // IMPORTANTE: Outro groupId diferente para garantir o recebimento das mensagens

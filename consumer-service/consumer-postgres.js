@@ -13,7 +13,7 @@ const pool = new Pool({
 // 2. Configuração do Kafka (os brokers já são nomes de serviço, o que está perfeito)
 const kafka = new Kafka({
   clientId: 'db-inserter',
-  brokers: ['broker-1:19092', 'broker-2:29092', 'broker-3:39092'],
+  brokers: ['broker-1:19092', 'broker-2:19092', 'broker-3:19092'],
 });
 
 const consumer = kafka.consumer({ groupId: 'database-consumers' });
@@ -39,14 +39,13 @@ const run = async () => {
 
         // 3. Lógica para Inserir no Banco de Dados
         const query = `
-          INSERT INTO game_events (game_name, event_type, event_details, event_timestamp)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO events_kafka (game, eventType, event)
+          VALUES ($1, $2, $3)
         `;
         const values = [
           eventData.game,
           eventData.eventType,
           eventData.event, // O campo event contém o objeto de detalhes
-          eventData.timestamp,
         ];
 
         try {
