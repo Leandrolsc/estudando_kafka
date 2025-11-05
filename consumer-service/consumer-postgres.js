@@ -39,7 +39,7 @@ const run = async () => {
 
         // 3. Lógica para Inserir no Banco de Dados
         const query = `
-          INSERT INTO events_kafka (game, eventType, event)
+          INSERT INTO events_kafka (game, "eventType", event)
           VALUES ($1, $2, $3)
         `;
         const values = [
