@@ -11,7 +11,7 @@ const kafka = new Kafka({
 // IMPORTANTE: Outro groupId diferente para garantir o recebimento das mensagens
 const consumer = kafka.consumer({ groupId: 'archive-consumers' });
 const topic = 'game-events';
-const archiveDir = path.join(__dirname, '..', 'archives'); // Aponta para a pasta ./archives/ no nível raiz
+const archiveDir = path.join(__dirname, '.', 'archives'); // Aponta para a pasta ./archives/ no nível raiz
 
 const run = async () => {
   try {
