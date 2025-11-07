@@ -269,6 +269,9 @@ services:
       - kafka-net
     ports:
       - "8083:8083"
+    volumes:
+      - ./archives:/data/archives
+      - 
     depends_on:
       postgres-db:
         condition: service_healthy

@@ -1,0 +1,20 @@
+{
+  "name": "spool-dir-source-connector",
+  "config": {
+    "connector.class": "com.github.jcustenborder.kafka.connect.spooldir.SpoolDirJsonSourceConnector",
+    "tasks.max": "1",
+    
+    "input.path": "/data/archives",     
+    "finished.path": "/data/archives/finished",
+    "error.path": "/data/archives/error",
+    
+    "input.file.pattern": ".*\\.json",
+    "schema.generation.enabled": "true",
+    "topic": "archive_events_topic",
+    
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
